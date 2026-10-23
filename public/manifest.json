@@ -1,0 +1,18 @@
+{
+  "name": "SUPER KASIR TOKO - Point of Sale Multi-Tenant",
+  "short_name": "SuperKasir",
+  "description": "Aplikasi Kasir POS Multi-Tenant Web & PWA modern, aman, dan siap produksi.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/assets/aistudio/image_c62bdde1.png",
+      "sizes": "192x192 512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

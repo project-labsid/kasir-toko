@@ -1,0 +1,1094 @@
+# MASTER PROMPT PEMBUATAN APLIKASI SUPER KASIR TOKO
+
+## 1. PERAN DAN TUJUAN
+
+Bertindak sebagai senior full-stack developer, software architect, UI/UX designer, database engineer, dan security engineer.
+
+Bangun aplikasi kasir bernama **SUPER KASIR TOKO**, yaitu aplikasi Point of Sale (POS) berbasis Web dan Progressive Web App (PWA) yang dapat digunakan pada laptop, komputer, tablet, dan smartphone.
+
+Aplikasi harus dikembangkan dengan arsitektur yang rapi, aman, responsif, mudah digunakan oleh pemilik toko maupun kasir, serta siap dikembangkan menjadi produk komersial.
+
+Jangan hanya membuat desain atau tampilan dashboard statis. Semua fitur inti harus terhubung ke database dan berfungsi secara nyata.
+
+Jangan menggunakan data palsu sebagai pengganti proses backend pada versi produksi. Jika menggunakan data demo selama pengembangan, pisahkan secara tegas dari data produksi.
+
+## 2. TEKNOLOGI YANG DIGUNAKAN
+
+Gunakan teknologi berikut:
+
+- Frontend: React dengan TypeScript.
+- Build tool: Vite.
+- Styling: Tailwind CSS.
+- Komponen UI: shadcn/ui atau komponen setara yang aksesibel.
+- Ikon: Lucide.
+- Backend dan database: Supabase.
+- Database: PostgreSQL yang dikelola Supabase.
+- Autentikasi: Supabase Auth.
+- Proteksi data: PostgreSQL Row Level Security (RLS).
+- Operasi sensitif: PostgreSQL functions/RPC atau Supabase Edge Functions jika sesuai.
+- Validasi: Zod atau library validasi setara.
+- Form: React Hook Form.
+- Pengelolaan state: gunakan pendekatan sederhana dan terstruktur.
+- PWA: manifest, service worker, ikon aplikasi, dan instalasi pada perangkat yang mendukung.
+- Pengujian: unit test, integration test, dan end-to-end test.
+- Deployment: layanan hosting frontend yang mendukung HTTPS serta integrasi environment variables.
+
+Gunakan versi dependensi yang stabil dan kompatibel ketika implementasi dimulai.
+
+Supabase menjadi sumber data utama. Jangan membuat backend alternatif yang tidak diperlukan.
+
+## 3. IDENTITAS DAN DESAIN APLIKASI
+
+Nama resmi aplikasi: SUPER KASIR TOKO.
+
+Buat identitas visual profesional untuk aplikasi kasir modern.
+
+Arahan desain:
+- Warna utama biru navy.
+- Warna sekunder teal atau hijau kebiruan.
+- Aksen kuning keemasan.
+- Latar belakang putih atau abu-abu sangat muda.
+- Tipografi jelas dan mudah dibaca.
+- Tampilan modern, profesional, bersih, dan tidak berlebihan.
+- Tombol penting memiliki ukuran yang nyaman digunakan pada layar sentuh.
+- Dashboard menggunakan kartu ringkasan, tabel, grafik, dan navigasi yang konsisten.
+- Buat logo aplikasi berbentuk gambar yang menggabungkan simbol toko, mesin kasir atau struk, dan identitas SUPER KASIR TOKO.
+- Sediakan varian logo horizontal, logo simbol, favicon, dan ikon PWA.
+- Jika fasilitas pembuat gambar tersedia, buat logo sebagai aset gambar terpisah dan simpan dalam folder aset proyek.
+- Jangan mengklaim logo telah dibuat jika file gambar sebenarnya belum tersedia.
+
+Buat antarmuka dalam Bahasa Indonesia.
+
+Gunakan format mata uang Rupiah (IDR), format tanggal Indonesia, dan zona waktu Asia/Jakarta sebagai pengaturan awal yang dapat disesuaikan.
+
+## 4. ARSITEKTUR MULTI-TENANT DAN PEMISAHAN AKUN
+
+Ini merupakan aturan paling penting dalam aplikasi.
+
+Setiap Owner yang mendaftar secara mandiri harus memperoleh organisasi atau tenant toko miliknya sendiri.
+
+Contoh:
+
+Owner A mendaftar.
+Sistem membuat organisasi A.
+Seluruh produk, pelanggan, transaksi, pegawai, stok, laporan, dan pengaturan Owner A berada di organisasi A.
+
+Owner B mendaftar.
+Sistem membuat organisasi B.
+Seluruh data Owner B berada di organisasi B.
+
+Owner A tidak boleh melihat, mengubah, menghapus, mencari, mengekspor, atau mengakses data Owner B.
+
+Owner B tidak boleh melihat, mengubah, menghapus, mencari, mengekspor, atau mengakses data Owner A.
+
+Pemisahan ini harus diterapkan pada database dan backend, bukan hanya dengan menyembunyikan menu di frontend.
+
+### Aturan organisasi
+
+1. Setiap Owner mandiri mendapatkan tenant_id tersendiri.
+2. Owner tidak boleh memilih tenant milik orang lain saat registrasi.
+3. Tenant baru harus dibuat melalui proses backend yang tervalidasi.
+4. Setiap tabel bisnis wajib memiliki tenant_id.
+5. Setiap permintaan data harus diverifikasi terhadap identitas dan keanggotaan pengguna.
+6. Terapkan RLS pada seluruh tabel yang berisi data privat.
+7. Jangan mengandalkan filter frontend sebagai mekanisme keamanan.
+8. Jangan memberikan izin agar Owner dapat mengganti tenant_id pada data miliknya untuk mengambil data organisasi lain.
+9. Jangan membuat hubungan antar-tenant secara otomatis hanya karena menggunakan aplikasi yang sama.
+10. Setiap relasi database harus menjaga konsistensi tenant.
+
+### Hubungan Owner dan staf
+
+Owner dapat membuat akun untuk kasir atau staf di dalam organisasinya.
+
+Akun staf hanya boleh menjadi anggota organisasi yang mengundangnya secara sah.
+
+Staf tidak boleh otomatis menjadi Owner organisasi baru hanya karena membuat kredensial login.
+
+Jika seorang staf sudah memiliki akun, dukung proses undangan atau penambahan keanggotaan yang aman tanpa memindahkan atau membuka data organisasi lain.
+
+Jangan menggunakan email atau password Owner untuk membuat akun staf. Setiap orang memiliki identitas autentikasi masing-masing.
+
+Sediakan mekanisme undangan dengan token acak, kedaluwarsa, sekali pakai, dan validasi server.
+
+Jika suatu saat pengguna boleh bergabung ke lebih dari satu organisasi, implementasikan pemilihan organisasi secara eksplisit dengan pemeriksaan keanggotaan pada setiap permintaan.
+
+## 5. TIGA JENIS AKUN
+
+### A. SUPER ADMIN
+
+Super Admin adalah akun khusus pembuat atau pengelola platform.
+
+Ketentuan:
+- Tidak dibuat melalui registrasi publik.
+- Dibuat secara aman ketika instalasi atau provisioning pertama.
+- Email Super Admin diatur melalui konfigurasi deployment.
+- Pembuatan akun menggunakan proses administratif yang hanya dapat dijalankan dengan kredensial server yang sah.
+- Jangan menanam password, service role key, atau rahasia lainnya ke source code.
+- Jangan menyediakan tombol registrasi Super Admin.
+- Jangan menjadikan pengguna sebagai Super Admin hanya karena mengubah metadata profil sendiri.
+- Role Super Admin harus diverifikasi melalui data dan kebijakan server yang terlindungi.
+- Sediakan prosedur pemulihan akun Super Admin yang aman.
+
+Jika sistem mendukung satu Super Admin awal, gunakan proses bootstrap satu kali yang idempoten, sehingga tidak bisa membuat akun istimewa berulang kali tanpa izin.
+
+### B. OWNER
+
+Owner adalah pemilik toko yang mendaftar secara mandiri.
+
+Alur:
+1. Owner membuka halaman registrasi.
+2. Mengisi nama lengkap, nama toko, email, dan password.
+3. Sistem memvalidasi data.
+4. Supabase Auth mengirim email verifikasi.
+5. Owner memverifikasi email melalui tautan resmi Supabase.
+6. Setelah email berhasil diverifikasi, proses provisioning tenant diselesaikan secara aman.
+7. Owner memperoleh keanggotaan dengan role owner pada tenant miliknya.
+8. Owner dapat masuk dan menggunakan aplikasi sesuai status akunnya.
+
+Status aktivasi:
+- pending_verification
+- active
+- suspended
+- deleted atau soft-deleted sesuai kebijakan retensi.
+
+Owner baru aktif setelah verifikasi email dan proses pembuatan organisasi berhasil diselesaikan.
+
+Jangan memberikan akses bisnis hanya karena frontend menerima respons sukses dari proses pendaftaran.
+
+Pastikan proses pembuatan tenant aman terhadap permintaan berulang, race condition, dan kegagalan sebagian.
+
+### C. KASIR ATAU STAF
+
+Owner dapat mengundang kasir atau staf.
+
+Hak akses awal:
+- Melihat produk yang diizinkan.
+- Melakukan transaksi penjualan.
+- Mencetak atau membagikan struk.
+- Melihat transaksi yang diizinkan sesuai kebijakan Owner.
+
+Secara default, kasir tidak boleh:
+- Menghapus organisasi.
+- Mengubah role dirinya sendiri.
+- Menjadi Super Admin.
+- Melihat laporan sensitif Owner.
+- Mengakses pengaturan keamanan Owner.
+- Mengubah harga modal atau data keuangan sensitif jika tidak diberi izin.
+
+Sediakan izin yang dapat diatur oleh Owner untuk diskon, pembatalan transaksi, retur, pengelolaan stok, dan laporan.
+
+Jangan menyimpan password pengguna lain dalam tabel profil.
+
+## 6. DASHBOARD SUPER ADMIN
+
+Buat dashboard khusus dengan akses terproteksi.
+
+Super Admin dapat melihat:
+
+### Ringkasan akun
+- Total akun Owner terdaftar.
+- Jumlah akun aktif.
+- Jumlah akun menunggu verifikasi.
+- Jumlah akun yang ditangguhkan.
+- Total organisasi atau toko.
+- Jumlah anggota atau staf.
+- Jumlah pendaftaran berdasarkan periode.
+- Grafik pertumbuhan pengguna.
+
+### Manajemen akun
+- Daftar Owner.
+- Nama Owner.
+- Email akun sesuai kewenangan.
+- Nama toko.
+- Tanggal pendaftaran.
+- Status verifikasi.
+- Status akun.
+- Jumlah anggota.
+- Aktivitas terakhir yang aman untuk ditampilkan.
+
+Sediakan pencarian, filter, pengurutan, pagination, dan detail profil organisasi yang tidak membuka isi transaksi.
+
+### Monitoring aktivitas
+Tampilkan metadata aktivitas, seperti:
+- Login berhasil atau gagal.
+- Pendaftaran akun.
+- Verifikasi email.
+- Pembuatan organisasi.
+- Undangan staf.
+- Perubahan status akun.
+- Perubahan konfigurasi penting.
+- Kejadian keamanan.
+- Waktu kejadian.
+- ID aktor dan organisasi terkait jika tersedia.
+
+Jangan menyimpan password, access token, refresh token, atau rahasia autentikasi di log.
+
+### Batasan privasi Super Admin
+
+Secara default, Super Admin TIDAK boleh melihat:
+- Item produk dalam transaksi tertentu.
+- Rincian keranjang.
+- Detail pembayaran pelanggan.
+- Data pelanggan lengkap.
+- Isi struk.
+- Detail penjualan per transaksi.
+- Informasi privat bisnis yang tidak diperlukan untuk monitoring platform.
+
+Dashboard Super Admin hanya menampilkan ringkasan akun dan aktivitas sistem.
+
+Jika suatu saat diperlukan fitur dukungan yang membuka detail bisnis, fitur tersebut harus dirancang terpisah dengan alasan akses, otorisasi eksplisit, audit log, dan kebijakan privasi yang jelas. Jangan mengaktifkannya pada versi awal.
+
+Super Admin boleh menangguhkan akun sesuai kebijakan platform. Setiap tindakan harus dicatat dalam audit log dan tidak boleh menghapus data bisnis secara otomatis.
+
+## 7. DASHBOARD OWNER
+
+Dashboard Owner harus menampilkan data dari tenant yang dimiliki atau diakses secara sah oleh Owner.
+
+Ringkasan:
+- Total penjualan hari ini.
+- Jumlah transaksi hari ini.
+- Produk terlaris.
+- Produk dengan stok menipis.
+- Total produk.
+- Total pelanggan.
+- Ringkasan keuntungan jika data modal dan biaya tersedia.
+- Grafik penjualan harian, mingguan, dan bulanan.
+
+Jangan menampilkan angka keuntungan sebagai angka pasti apabila harga modal, diskon, retur, atau biaya belum dihitung dengan benar.
+
+Sediakan navigasi:
+- Dashboard.
+- Kasir.
+- Produk.
+- Kategori.
+- Stok.
+- Pembelian.
+- Supplier.
+- Pelanggan.
+- Riwayat transaksi.
+- Retur.
+- Pengeluaran.
+- Laporan.
+- Pegawai dan hak akses.
+- Pengaturan toko.
+- Pengaturan struk.
+- Profil dan keamanan akun.
+
+Terapkan pembatasan role dan izin pada seluruh halaman serta operasi backend.
+
+## 8. MODUL KASIR DAN PENJUALAN
+
+Buat halaman POS yang cepat dan mudah digunakan.
+
+Fitur:
+- Pencarian produk berdasarkan nama atau SKU.
+- Pemindaian barcode melalui perangkat yang mendukung.
+- Penambahan produk ke keranjang.
+- Perubahan kuantitas.
+- Penghapusan item dari keranjang.
+- Penerapan diskon sesuai izin.
+- Perhitungan subtotal.
+- Perhitungan pajak jika diaktifkan.
+- Perhitungan total.
+- Input jumlah uang diterima.
+- Perhitungan uang kembalian.
+- Metode pembayaran tunai.
+- Metode pembayaran non-tunai yang dapat dikonfigurasi.
+- Penyelesaian transaksi.
+- Nomor transaksi unik.
+- Struk penjualan.
+- Cetak melalui browser atau printer yang kompatibel.
+- Unduh atau bagikan struk jika didukung perangkat.
+- Riwayat transaksi.
+- Retur sesuai izin.
+- Pembatalan transaksi melalui proses yang diaudit.
+
+Gunakan transaksi database yang atomik untuk penyelesaian penjualan.
+
+Dalam satu operasi yang konsisten:
+1. Validasi identitas dan tenant pengguna.
+2. Validasi produk dan harga dari database.
+3. Validasi ketersediaan stok.
+4. Hitung total di sisi server.
+5. Buat catatan penjualan.
+6. Buat detail item penjualan.
+7. Catat pembayaran.
+8. Perbarui stok.
+9. Catat pergerakan stok.
+10. Catat audit aktivitas yang diperlukan.
+
+Jangan mempercayai harga, diskon, total, atau tenant_id yang dikirim oleh browser tanpa validasi server.
+
+Gunakan database function/RPC yang dirancang dengan aman untuk operasi transaksi atomik.
+
+Pastikan dua kasir yang menjual stok terakhir secara bersamaan tidak menyebabkan stok negatif atau penjualan ganda yang tidak konsisten.
+
+Gunakan idempotency key atau mekanisme setara untuk mencegah transaksi terduplikasi akibat pengguna menekan tombol berkali-kali atau koneksi terputus.
+
+## 9. PRODUK DAN PERSEDIAAN
+
+Fitur produk:
+- Nama produk.
+- SKU.
+- Barcode.
+- Kategori.
+- Satuan.
+- Harga modal.
+- Harga jual.
+- Stok.
+- Stok minimum.
+- Status aktif.
+- Foto produk jika diperlukan.
+- Waktu pembuatan dan perubahan.
+
+Fitur persediaan:
+- Penambahan stok.
+- Pengurangan stok yang sah.
+- Penyesuaian stok.
+- Riwayat mutasi.
+- Stok minimum.
+- Peringatan stok menipis.
+- Riwayat pembelian dari supplier.
+- Retur pembelian jika didukung.
+
+Setiap perubahan stok harus memiliki alasan, waktu, aktor, dan referensi transaksi jika relevan.
+
+Jangan mengubah stok secara langsung tanpa pencatatan mutasi.
+
+Simpan harga modal dan harga jual dengan tipe numerik yang tepat, bukan floating point yang tidak sesuai untuk nilai uang.
+
+## 10. PELANGGAN, SUPPLIER, DAN PEMBELIAN
+
+Pelanggan:
+- Nama.
+- Nomor telepon opsional.
+- Email opsional.
+- Alamat opsional.
+- Catatan yang relevan.
+- Riwayat transaksi dalam tenant yang sama.
+
+Supplier:
+- Nama.
+- Kontak.
+- Alamat opsional.
+- Catatan.
+
+Pembelian:
+- Nomor pembelian.
+- Supplier.
+- Tanggal.
+- Daftar produk.
+- Kuantitas.
+- Harga beli.
+- Total.
+- Status.
+- Pembaruan stok yang tercatat.
+
+Batasi data pribadi hanya untuk tujuan operasional yang diperlukan.
+
+## 11. LAPORAN DAN EKSPOR
+
+Sediakan laporan:
+- Penjualan harian.
+- Penjualan mingguan.
+- Penjualan bulanan.
+- Penjualan berdasarkan periode.
+- Penjualan berdasarkan produk.
+- Penjualan berdasarkan kategori.
+- Penjualan berdasarkan kasir.
+- Stok saat ini.
+- Mutasi stok.
+- Pembelian.
+- Retur.
+- Pengeluaran.
+- Ringkasan laba kotor jika data pendukung tersedia.
+
+Fitur:
+- Filter rentang tanggal.
+- Filter kasir.
+- Filter kategori.
+- Pencarian.
+- Pagination.
+- Ekspor CSV.
+- Cetak laporan.
+
+Semua laporan wajib dibatasi berdasarkan tenant dan izin pengguna.
+
+Ekspor harus diproses dengan otorisasi yang sama seperti pembacaan data pada halaman.
+
+## 12. STRUK DAN PENGATURAN TOKO
+
+Owner dapat mengatur:
+- Nama toko.
+- Alamat toko.
+- Nomor telepon toko.
+- Logo toko opsional.
+- Pesan pembuka dan penutup struk.
+- Format nomor transaksi.
+- Format mata uang.
+- Pajak jika berlaku.
+- Aturan diskon.
+- Pengaturan stok.
+- Zona waktu.
+- Preferensi tampilan.
+
+Struk menampilkan informasi yang relevan:
+- Nama toko.
+- Nomor transaksi.
+- Waktu transaksi.
+- Nama kasir sesuai kebijakan.
+- Item dan kuantitas.
+- Harga.
+- Diskon.
+- Total.
+- Pembayaran.
+- Kembalian jika relevan.
+- Pesan penutup.
+
+Jangan menampilkan informasi rahasia atau data pelanggan yang tidak diperlukan.
+
+## 13. STRUKTUR DATABASE SUPABASE
+
+Gunakan PostgreSQL dengan UUID sebagai primary key untuk entitas utama.
+
+Rancang tabel berikut. Sesuaikan detail kolom dan constraint berdasarkan implementasi.
+
+### profiles
+- id UUID, sama dengan auth.users.id.
+- full_name.
+- phone nullable.
+- avatar_url nullable.
+- created_at.
+- updated_at.
+
+### platform_roles
+- user_id UUID.
+- role, misalnya super_admin.
+- created_at.
+- Role istimewa tidak boleh ditetapkan sendiri oleh pengguna.
+- Tabel hanya dapat diubah melalui proses administratif yang terlindungi.
+
+### organizations
+- id UUID.
+- name.
+- slug jika diperlukan.
+- owner_user_id UUID.
+- status.
+- timezone.
+- currency_code.
+- created_at.
+- updated_at.
+
+### organization_members
+- id UUID.
+- organization_id UUID.
+- user_id UUID.
+- role, misalnya owner, manager, cashier.
+- status.
+- permissions JSONB jika sesuai dan divalidasi.
+- created_at.
+- Unique constraint untuk kombinasi organisasi dan pengguna.
+
+### organization_invitations
+- id UUID.
+- organization_id UUID.
+- invited_email.
+- intended_role.
+- token_hash, bukan token mentah.
+- expires_at.
+- accepted_at nullable.
+- created_by.
+- created_at.
+
+### products
+- id UUID.
+- organization_id UUID.
+- name.
+- sku.
+- barcode nullable.
+- category_id nullable.
+- unit.
+- cost_price.
+- selling_price.
+- current_stock.
+- minimum_stock.
+- image_path nullable.
+- is_active.
+- created_at.
+- updated_at.
+
+Terapkan unique constraint SKU dan barcode dalam lingkup organisasi jika nilainya harus unik.
+
+### categories
+- id UUID.
+- organization_id UUID.
+- name.
+- created_at.
+
+### customers
+- id UUID.
+- organization_id UUID.
+- name.
+- phone nullable.
+- email nullable.
+- address nullable.
+- created_at.
+
+### suppliers
+- id UUID.
+- organization_id UUID.
+- name.
+- phone nullable.
+- email nullable.
+- address nullable.
+- created_at.
+
+### sales
+- id UUID.
+- organization_id UUID.
+- transaction_number.
+- cashier_user_id.
+- customer_id nullable.
+- subtotal.
+- discount_amount.
+- tax_amount.
+- total_amount.
+- payment_status.
+- status.
+- idempotency_key.
+- created_at.
+
+### sale_items
+- id UUID.
+- organization_id UUID.
+- sale_id UUID.
+- product_id UUID.
+- product_name_snapshot.
+- sku_snapshot nullable.
+- quantity.
+- unit_price.
+- unit_cost_snapshot jika kebijakan akses dan pelaporan membutuhkannya.
+- discount_amount.
+- line_total.
+
+Simpan snapshot nama dan harga pada transaksi supaya riwayat tetap konsisten saat produk berubah.
+
+### payments
+- id UUID.
+- organization_id UUID.
+- sale_id UUID.
+- payment_method.
+- amount.
+- reference nullable.
+- status.
+- created_at.
+
+Jangan menyimpan nomor kartu lengkap, CVV, password, atau data autentikasi pembayaran yang sensitif.
+
+### inventory_movements
+- id UUID.
+- organization_id UUID.
+- product_id UUID.
+- movement_type.
+- quantity_delta.
+- reference_type nullable.
+- reference_id nullable.
+- reason nullable.
+- actor_user_id.
+- created_at.
+
+### purchases
+- id UUID.
+- organization_id UUID.
+- supplier_id nullable.
+- purchase_number.
+- subtotal.
+- total_amount.
+- status.
+- created_by.
+- created_at.
+
+### purchase_items
+- id UUID.
+- organization_id UUID.
+- purchase_id UUID.
+- product_id UUID.
+- quantity.
+- unit_cost.
+- line_total.
+
+### returns
+- id UUID.
+- organization_id UUID.
+- sale_id UUID.
+- return_number.
+- total_amount.
+- reason.
+- status.
+- processed_by.
+- created_at.
+
+### return_items
+- id UUID.
+- organization_id UUID.
+- return_id UUID.
+- sale_item_id UUID.
+- quantity.
+- refund_amount.
+
+### expenses
+- id UUID.
+- organization_id UUID.
+- description.
+- category.
+- amount.
+- expense_date.
+- created_by.
+- created_at.
+
+### store_settings
+- organization_id UUID sebagai key unik.
+- receipt settings.
+- tax settings.
+- discount settings.
+- inventory settings.
+- updated_at.
+
+### audit_logs
+- id UUID.
+- organization_id UUID nullable.
+- actor_user_id UUID nullable.
+- event_type.
+- target_type nullable.
+- target_id nullable.
+- metadata JSONB yang dibatasi.
+- created_at.
+
+Log harus append-only untuk pengguna biasa. Cegah perubahan atau penghapusan log tanpa prosedur administratif yang sah.
+
+### platform_activity_logs
+- id UUID.
+- actor_user_id UUID nullable.
+- organization_id UUID nullable.
+- event_type.
+- metadata JSONB yang telah disanitasi.
+- created_at.
+
+Tabel ini digunakan untuk monitoring platform oleh Super Admin tanpa membuka detail transaksi.
+
+### app_settings atau platform_settings
+- Pengaturan platform non-rahasia.
+- Status pendaftaran.
+- Konfigurasi fitur global yang diperlukan.
+
+Rahasia sistem tidak boleh disimpan sebagai pengaturan frontend yang dapat dibaca publik.
+
+### Constraint dan relasi
+
+- Gunakan foreign key yang sesuai.
+- Gunakan unique constraint untuk data yang harus unik.
+- Gunakan indeks pada organization_id, created_at, status, dan kolom pencarian yang relevan.
+- Tambahkan composite constraint atau foreign key yang sesuai agar relasi lintas organisasi tidak dapat dibuat.
+- Pastikan seluruh perubahan penting menjaga integritas data.
+- Gunakan migration SQL yang tersimpan dalam version control.
+- Jangan mengandalkan pembuatan tabel manual yang tidak terdokumentasi.
+
+## 14. ROW LEVEL SECURITY DAN KEAMANAN DATABASE
+
+Aktifkan RLS pada seluruh tabel bisnis, tabel keanggotaan, tabel platform, dan tabel privat.
+
+Prinsip kebijakan:
+
+Pengguna hanya boleh membaca data organisasi jika memiliki keanggotaan aktif dan role yang sesuai.
+
+Pengguna hanya boleh menambah, mengubah, atau menghapus data jika role dan izin mengizinkannya.
+
+Owner hanya dapat mengelola organisasi yang secara sah dimilikinya.
+
+Kasir hanya dapat mengakses fungsi operasional yang diberikan kepadanya.
+
+Pengguna tidak dapat menambahkan dirinya sendiri sebagai Owner organisasi lain.
+
+Pengguna tidak dapat menaikkan role dirinya sendiri.
+
+Pengguna biasa tidak dapat membaca tabel platform_roles.
+
+Super Admin tidak otomatis mendapatkan akses ke seluruh tabel transaksi.
+
+Buat helper SQL function untuk memeriksa keanggotaan dan role jika diperlukan. Pastikan fungsi aman terhadap recursive RLS, memiliki search_path yang ditetapkan dengan aman, serta tidak memberikan privilege berlebihan.
+
+Hindari policy yang mengizinkan semua pengguna terautentikasi membaca seluruh data.
+
+Hindari penggunaan user-editable metadata sebagai satu-satunya sumber otorisasi.
+
+Gunakan tabel keanggotaan dan role yang dikelola secara tepercaya.
+
+Uji kebijakan RLS dengan beberapa akun berbeda, termasuk permintaan langsung melalui Supabase API.
+
+### Supabase Storage
+
+Jika menyimpan foto produk, avatar, atau logo:
+- Atur bucket sesuai kebutuhan.
+- Terapkan Storage policies.
+- Batasi akses berdasarkan tenant dan keanggotaan.
+- Jangan menganggap path file sebagai mekanisme keamanan.
+- Gunakan URL bertanda tangan jika konten harus privat.
+- Validasi ukuran file, MIME type, dan jenis file.
+
+### Kunci dan rahasia
+
+- SUPABASE_URL dan publishable/anon key dapat digunakan di frontend sesuai model keamanan Supabase dan kebijakan RLS.
+- Secret key atau service_role key hanya boleh berada pada lingkungan server yang tepercaya.
+- Jangan pernah memasukkan secret key ke source code frontend, repository publik, atau bundle JavaScript.
+- Jangan menampilkan kredensial di log atau pesan error.
+- Gunakan environment variables.
+- Sediakan .env.example tanpa rahasia nyata.
+- Terapkan pembatasan permintaan, validasi input, penanganan error, dan proteksi terhadap penyalahgunaan autentikasi.
+
+## 15. AUTENTIKASI DAN PEMULIHAN AKUN
+
+Implementasikan:
+- Registrasi email dan password.
+- Verifikasi email.
+- Login.
+- Logout.
+- Lupa password.
+- Reset password.
+- Refresh sesi.
+- Perlindungan route.
+- Penanganan sesi kedaluwarsa.
+- Pesan kesalahan yang tidak membocorkan informasi akun secara berlebihan.
+- Pengaturan password yang sesuai.
+- Pembatasan percobaan login jika didukung infrastruktur.
+
+Gunakan alur autentikasi resmi Supabase.
+
+Atur redirect URL autentikasi sesuai domain development dan production.
+
+Pastikan tautan verifikasi dan reset password tidak dapat dialihkan ke domain yang tidak diizinkan.
+
+Jangan menganggap login berhasil berarti pengguna otomatis memiliki akses ke semua organisasi.
+
+## 16. PWA DAN PENGGUNAAN DI BERBAGAI PERANGKAT
+
+Aplikasi harus responsif pada:
+- Android.
+- iPhone dan iPad.
+- Tablet Android.
+- Laptop.
+- Desktop.
+
+Fitur PWA:
+- Manifest.
+- Ikon aplikasi.
+- Instalasi ke home screen jika didukung.
+- Tampilan standalone.
+- Service worker.
+- Strategi cache yang aman.
+- Halaman fallback ketika jaringan terganggu.
+
+Jangan menyimpan data sensitif transaksi atau kredensial di cache publik secara sembarangan.
+
+Jangan meng-cache respons API privat dengan strategi cache bersama yang berisiko membocorkan data antar akun.
+
+Jika mengembangkan mode offline:
+- Bedakan status transaksi lokal dan transaksi server.
+- Gunakan antrean sinkronisasi yang aman.
+- Cegah transaksi duplikat.
+- Tangani konflik stok.
+- Validasi ulang harga dan ketersediaan stok di server.
+- Jangan menganggap transaksi offline sudah tercatat secara resmi sebelum sinkronisasi berhasil.
+- Berikan indikator sinkronisasi kepada pengguna.
+
+Jika mode offline belum aman untuk produksi, tampilkan pesan koneksi dan sediakan mode kasir online yang stabil terlebih dahulu.
+
+## 17. MONITORING, AUDIT, DAN PRIVASI
+
+Catat kejadian penting:
+- Pendaftaran.
+- Verifikasi email.
+- Pembuatan organisasi.
+- Undangan anggota.
+- Login dan logout sesuai kemampuan sistem.
+- Perubahan role.
+- Perubahan pengaturan keamanan.
+- Transaksi yang dibatalkan.
+- Retur.
+- Penangguhan akun.
+
+Jangan merekam password, token, atau data pembayaran sensitif.
+
+Super Admin melihat ringkasan aktivitas, bukan isi transaksi.
+
+Buat retensi log yang dapat dikonfigurasi, dokumentasi privasi, dan prosedur penanganan insiden.
+
+Lakukan audit setiap tindakan istimewa.
+
+## 18. MODEL BISNIS
+
+Versi awal menggunakan model gratis.
+
+Jangan mengimplementasikan pembayaran berlangganan yang belum diperlukan.
+
+Namun, siapkan struktur yang memungkinkan paket berbayar ditambahkan nanti, seperti:
+- Tabel plans.
+- Tabel subscriptions.
+- Batas jumlah anggota.
+- Batas jumlah produk.
+- Batas penggunaan fitur tertentu.
+- Status paket.
+
+Pada versi awal, semua Owner dapat menggunakan fitur gratis sesuai kebijakan platform.
+
+Jangan mengunci fitur secara acak atau membuat sistem pembayaran palsu.
+
+Jika kelak paket berbayar diaktifkan, validasi status langganan di server dan database, bukan hanya di frontend.
+
+## 19. HALAMAN YANG HARUS DIBUAT
+
+Halaman publik:
+- Landing page.
+- Tentang aplikasi.
+- Fitur.
+- Kebijakan privasi.
+- Syarat penggunaan.
+- Registrasi Owner.
+- Verifikasi email.
+- Login.
+- Lupa password.
+- Reset password.
+
+Halaman Owner:
+- Dashboard.
+- POS kasir.
+- Produk.
+- Kategori.
+- Persediaan.
+- Pelanggan.
+- Supplier.
+- Pembelian.
+- Transaksi.
+- Retur.
+- Pengeluaran.
+- Laporan.
+- Pegawai.
+- Undangan staf.
+- Pengaturan toko.
+- Pengaturan struk.
+- Profil.
+
+Halaman Super Admin:
+- Dashboard monitoring.
+- Daftar akun.
+- Detail profil dan organisasi.
+- Status akun.
+- Aktivitas sistem.
+- Audit tindakan administratif.
+- Pengaturan platform yang diizinkan.
+
+Setiap route harus dilindungi sesuai role.
+
+## 20. UI/UX DAN KUALITAS PENGGUNAAN
+
+Buat:
+- Navigasi desktop yang jelas.
+- Navigasi mobile yang mudah dijangkau.
+- Sidebar dashboard yang konsisten.
+- Pencarian dan filter yang berfungsi.
+- Loading state.
+- Empty state.
+- Error state.
+- Konfirmasi sebelum tindakan berisiko.
+- Toast atau notifikasi.
+- Form dengan validasi.
+- Dialog konfirmasi penghapusan.
+- Pagination pada tabel besar.
+- Format angka dan tanggal yang konsisten.
+- Aksesibilitas keyboard dan screen reader.
+- Kontras warna yang baik.
+- Tampilan kasir yang cepat dan minim langkah.
+
+Jangan membuat tombol yang hanya terlihat aktif tetapi tidak melakukan apa pun.
+
+Jika sebuah fitur belum tersedia, tandai dengan jelas dan jangan memberikan kesan bahwa prosesnya berhasil.
+
+## 21. PENGUJIAN WAJIB
+
+Buat automated test dan checklist manual.
+
+### Pengujian isolasi tenant
+
+1. Buat Owner A dan Owner B.
+2. Pastikan keduanya memperoleh tenant berbeda.
+3. Masukkan produk pada tenant A.
+4. Login sebagai Owner B.
+5. Pastikan produk A tidak terlihat.
+6. Coba akses ID produk A melalui API secara langsung.
+7. Pastikan akses ditolak.
+8. Coba mengubah organization_id dalam request.
+9. Pastikan pengguna tidak bisa membaca atau mengubah data tenant lain.
+10. Ulangi untuk transaksi, pelanggan, stok, laporan, dan ekspor.
+
+### Pengujian role
+
+- Kasir tidak dapat menjadi Owner tanpa proses sah.
+- Owner tidak dapat menjadi Super Admin.
+- Registrasi publik tidak dapat membuat Super Admin.
+- Super Admin tidak melihat detail transaksi secara default.
+- Akun yang ditangguhkan tidak dapat melakukan operasi bisnis.
+- Pengguna yang keanggotaannya dicabut kehilangan akses organisasi terkait.
+
+### Pengujian transaksi
+
+- Total dihitung ulang di server.
+- Stok tidak menjadi negatif akibat race condition.
+- Transaksi gagal tidak meninggalkan catatan setengah jadi.
+- Permintaan ganda tidak membuat penjualan duplikat.
+- Pembatalan dan retur menghasilkan mutasi stok yang benar.
+- Riwayat transaksi tetap benar meskipun harga produk berubah.
+
+### Pengujian autentikasi
+
+- Email belum diverifikasi.
+- Link verifikasi kedaluwarsa.
+- Reset password.
+- Sesi kedaluwarsa.
+- Akses route tanpa login.
+- Akses route dengan role salah.
+
+### Pengujian PWA
+
+- Instalasi.
+- Responsivitas.
+- Pembaruan service worker.
+- Penanganan jaringan terputus.
+- Tidak ada kebocoran data privat melalui cache.
+
+Jangan menyatakan aplikasi aman hanya karena pengujian frontend berhasil. Jalankan pengujian langsung terhadap database dan kebijakan RLS.
+
+## 22. TAHAPAN IMPLEMENTASI
+
+Kerjakan dalam fase berikut.
+
+### Fase 1 — Fondasi
+- Siapkan struktur proyek.
+- Konfigurasi Supabase.
+- Buat migration database.
+- Rancang role dan tenant.
+- Implementasikan autentikasi.
+- Buat proses provisioning Owner.
+- Buat bootstrap Super Admin.
+- Implementasikan RLS dan pengujian isolasi.
+
+### Fase 2 — Dashboard dan organisasi
+- Dashboard Owner.
+- Dashboard Super Admin.
+- Profil.
+- Organisasi.
+- Anggota.
+- Undangan.
+- Hak akses.
+
+### Fase 3 — Operasional kasir
+- Produk.
+- Kategori.
+- Stok.
+- POS.
+- Pembayaran.
+- Struk.
+- Riwayat transaksi.
+
+### Fase 4 — Fitur bisnis
+- Pelanggan.
+- Supplier.
+- Pembelian.
+- Retur.
+- Pengeluaran.
+- Laporan.
+
+### Fase 5 — PWA dan penyempurnaan
+- Manifest.
+- Service worker.
+- Ikon.
+- Responsivitas.
+- Optimasi performa.
+- Aksesibilitas.
+- Pengujian keamanan dan fungsional.
+
+### Fase 6 — Deployment
+- Konfigurasi domain.
+- HTTPS.
+- Environment variables.
+- Supabase Auth redirect URL.
+- SMTP produksi untuk email autentikasi.
+- Migration database.
+- Backup dan prosedur pemulihan.
+- Monitoring error.
+- Checklist peluncuran.
+
+Jangan melompati fase keamanan demi mempercepat tampilan.
+
+## 23. STANDAR HASIL AKHIR
+
+Hasil akhir harus meliputi:
+
+1. Source code frontend dan backend yang diperlukan.
+2. Struktur folder yang jelas.
+3. File migration SQL.
+4. Kebijakan RLS lengkap.
+5. Fungsi database dan Edge Functions jika diperlukan.
+6. Konfigurasi autentikasi Supabase.
+7. File .env.example.
+8. Panduan instalasi lokal.
+9. Panduan membuat dan mengonfigurasi proyek Supabase.
+10. Panduan bootstrap Super Admin.
+11. Panduan deployment.
+12. Dokumentasi tabel database.
+13. Dokumentasi role dan hak akses.
+14. Automated tests.
+15. Checklist pengujian manual.
+16. Panduan backup dan pemulihan.
+17. Petunjuk pembuatan logo serta ikon PWA.
+18. Daftar keterbatasan yang masih tersisa.
+
+Jangan memasukkan secret key, password awal, atau kredensial produksi ke repository.
+
+Jangan mengarang bahwa aplikasi telah terhubung ke Supabase jika konfigurasi belum diberikan dan diuji.
+
+Jangan mengklaim deployment berhasil jika belum benar-benar dilakukan.
+
+## 24. CARA BEKERJA
+
+Sebelum menulis kode:
+1. Jelaskan arsitektur yang dipilih.
+2. Tampilkan rancangan relasi database.
+3. Jelaskan alur registrasi Owner.
+4. Jelaskan bootstrap Super Admin.
+5. Jelaskan kebijakan RLS.
+6. Jelaskan bagaimana isolasi tenant diuji.
+7. Tampilkan struktur folder yang direncanakan.
+8. Identifikasi konfigurasi yang harus disediakan pengguna.
+
+Setelah rancangan disetujui, implementasikan aplikasi secara bertahap.
+
+Jika tersedia akses ke repository dan Supabase, periksa lingkungan terlebih dahulu sebelum melakukan perubahan.
+
+Jangan mengasumsikan proyek Supabase sudah tersedia.
+
+Jangan meminta pengguna membagikan password atau secret key melalui percakapan.
+
+Jika ada keputusan teknis yang belum ditentukan, pilih opsi yang paling aman dan jelaskan alasannya. Ajukan pertanyaan hanya jika keputusan tersebut benar-benar menghalangi implementasi.
+
+Pada setiap fase, laporkan:
+- File yang dibuat atau diubah.
+- Fitur yang sudah berfungsi.
+- Migration yang harus dijalankan.
+- Konfigurasi yang masih dibutuhkan.
+- Pengujian yang berhasil dan gagal.
+- Risiko atau pekerjaan yang belum selesai.
+
+Mulai dengan menghasilkan rancangan teknis dan rencana implementasi. Jangan langsung mengklaim aplikasi siap produksi sebelum seluruh fungsi, keamanan, dan pengujian benar-benar selesai.
+
+# AKHIR MASTER PROMPT
+
+Bangun SUPER KASIR TOKO dengan prioritas utama pada pemisahan data antar-Owner, keamanan Supabase, transaksi yang konsisten, kemudahan penggunaan, dan kesiapan dikembangkan menjadi produk profesional.

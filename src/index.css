@@ -1,0 +1,60 @@
+@import "tailwindcss";
+
+/* =========================================================
+   THERMAL RECEIPT PRINT STYLING (58mm / 80mm)
+   Khusus Mesin Printer Termal Bluetooth / USB POS
+========================================================= */
+@media print {
+  html, body {
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Tampilkan hanya wadah struk termal */
+  #thermal-receipt-print,
+  #thermal-receipt-print * {
+    visibility: visible !important;
+  }
+
+  #thermal-receipt-print {
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    display: block !important;
+    margin: 0 !important;
+    padding: 2mm 3mm !important;
+    font-family: 'Courier New', Courier, 'Lucida Console', Monaco, monospace !important;
+    font-size: 11px !important;
+    line-height: 1.3 !important;
+    color: #000000 !important;
+    background: #ffffff !important;
+    box-shadow: none !important;
+    border: none !important;
+  }
+
+  /* Ukuran Kertas 58mm (Standar Mini Printer Termal Kasir) */
+  #thermal-receipt-print.paper-58mm {
+    width: 58mm !important;
+    max-width: 58mm !important;
+  }
+
+  /* Ukuran Kertas 80mm (Standar POS Printer Lebar) */
+  #thermal-receipt-print.paper-80mm {
+    width: 80mm !important;
+    max-width: 80mm !important;
+    font-size: 12.5px !important;
+  }
+
+  @page {
+    size: auto;
+    margin: 0mm;
+  }
+}

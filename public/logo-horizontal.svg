@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 160" width="100%" height="100%">
+  <defs>
+    <linearGradient id="hz-gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+    <linearGradient id="hz-teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2dd4bf" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <linearGradient id="hz-navy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+  </defs>
+
+  <!-- Symbol Icon on the left -->
+  <g transform="translate(10, 10) scale(0.273)">
+    <rect x="24" y="24" width="464" height="464" rx="90" fill="url(#hz-navy)" stroke="#334155" stroke-width="4" />
+    <!-- Store Awning -->
+    <path d="M120 180 L392 180 L420 220 L92 220 Z" fill="#1e293b" stroke="#38bdf8" stroke-width="4" stroke-linejoin="round" />
+    <path d="M120 180 L160 220" stroke="#38bdf8" stroke-width="4" />
+    <path d="M210 180 L230 220" stroke="#38bdf8" stroke-width="4" />
+    <path d="M302 180 L282 220" stroke="#38bdf8" stroke-width="4" />
+    <path d="M392 180 L352 220" stroke="#38bdf8" stroke-width="4" />
+    <!-- POS Screen -->
+    <rect x="156" y="235" width="200" height="135" rx="14" fill="#0f172a" stroke="url(#hz-teal)" stroke-width="6" />
+    <rect x="170" y="249" width="172" height="107" rx="8" fill="#020617" />
+    <rect x="185" y="265" width="65" height="12" rx="4" fill="url(#hz-teal)" />
+    <rect x="185" y="285" width="100" height="8" rx="3" fill="#64748b" />
+    <circle cx="310" cy="272" r="14" fill="url(#hz-gold)" />
+    <path d="M236 370 L276 370 L290 405 L222 405 Z" fill="#334155" />
+    <rect x="136" y="405" width="240" height="22" rx="6" fill="#1e293b" stroke="#475569" stroke-width="2" />
+    <line x1="180" y1="416" x2="332" y2="416" stroke="url(#hz-gold)" stroke-width="5" stroke-linecap="round" />
+    <!-- Receipt -->
+    <path d="M320 120 L370 120 L370 230 L320 230 Z" fill="#f8fafc" rx="4" />
+    <line x1="330" y1="140" x2="360" y2="140" stroke="#0284c7" stroke-width="3" stroke-linecap="round" />
+    <line x1="330" y1="160" x2="358" y2="160" stroke="#64748b" stroke-width="2" />
+    <line x1="330" y1="185" x2="360" y2="185" stroke="#0d9488" stroke-width="3" stroke-linecap="round" />
+    <!-- Star -->
+    <g transform="translate(130, 110) scale(0.9)">
+      <polygon points="40,5 50,28 75,30 56,47 62,72 40,58 18,72 24,47 5,30 30,28" fill="url(#hz-gold)" />
+    </g>
+  </g>
+
+  <!-- Typography -->
+  <text x="165" y="68" font-family="system-ui, -apple-system, 'Inter', sans-serif" font-weight="900" font-size="34" letter-spacing="1" fill="#0f172a">
+    SUPER <tspan fill="url(#hz-teal)">KASIR</tspan> <tspan fill="url(#hz-gold)">TOKO</tspan>
+  </text>
+  
+  <text x="167" y="102" font-family="system-ui, -apple-system, 'Inter', sans-serif" font-weight="600" font-size="14" letter-spacing="3" fill="#64748b">
+    SISTEM POINT OF SALE &amp; MANAJEMEN TOKO MULTI-TENANT
+  </text>
+
+  <rect x="167" y="118" width="130" height="4" rx="2" fill="url(#hz-teal)" />
+  <rect x="303" y="118" width="40" height="4" rx="2" fill="url(#hz-gold)" />
+</svg>
